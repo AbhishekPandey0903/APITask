@@ -81,10 +81,10 @@ namespace BellurbisRestroApi.Controllers
             var successStatus = repo.RestroPlayerMapping(mod);
             return Ok(successStatus);
         }
-        [HttpGet]
-        public IActionResult GetbyAge(string restName)
+        [HttpGet("{RestroName}")]
+        public IActionResult GetbyAge(string RestroName)
         {
-            var result = repo.GetbyAge(restName);
+            var result = repo.GetbyAge(RestroName);
             return Ok(result);
         }
     }
