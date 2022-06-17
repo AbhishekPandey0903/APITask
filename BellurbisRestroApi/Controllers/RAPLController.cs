@@ -71,7 +71,7 @@ namespace BellurbisRestroApi.Controllers
             return (repo.RetrievePlayer(name));
         }
         [HttpGet("{Name}")]
-        public List<FavRestroPlayer> fvrtRes(string name,bool status = true)
+        public List<FavRestroPlayer> fvrtRes(string name,bool status = true)//
         {
             return (repo.FvrtRes(name));
         }
@@ -82,9 +82,9 @@ namespace BellurbisRestroApi.Controllers
             return Ok(successStatus);
         }
         [HttpGet("{RestroName}")]
-        public IActionResult GetbyAge(string RestroName)
+        public IActionResult GetbyAge(string RestroName,int age)
         {
-            var result = repo.GetbyAge(RestroName);
+            var result = repo.GetbyAge(RestroName,age);
             return Ok(result);
         }
     }

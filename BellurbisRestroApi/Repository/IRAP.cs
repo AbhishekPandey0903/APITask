@@ -6,6 +6,7 @@ using System.Text.Json;
 
 namespace BellurbisRestroApi.Repository
 {
+
     public interface IRAP
     {
         List<RestroMod> RestroIndex();
@@ -21,7 +22,7 @@ namespace BellurbisRestroApi.Repository
         List<FavRestroPlayer> getall();
         List<FavRestroPlayer> FvrtRes(string name, bool status = true);
         bool RestroPlayerMapping(LinkMod mod);
-        List<string> GetbyAge(string RestroName,int age);
+        ListOfResAndPaly GetbyAge(string RestroName, int age);
 
     }
     public abstract class RAPAbs : IRAP
@@ -40,7 +41,7 @@ namespace BellurbisRestroApi.Repository
         public abstract List<FavRestroPlayer> getall();
         public abstract List<FavRestroPlayer> FvrtRes(string name, bool status = true);
         public abstract bool RestroPlayerMapping(LinkMod mod);
-        public abstract List<string> GetbyAge(string RestroName,int age);
+        public abstract ListOfResAndPaly GetbyAge(string RestroName, int age);
     }
 
     public class RAPRepository : RAPAbs
@@ -106,7 +107,7 @@ namespace BellurbisRestroApi.Repository
                 }
             }
         }
-      
+
         public override RestroMod RestroEdit(int RestroId)
         {
             var a = dbcontext.Restrotab.Find(RestroId);
@@ -146,7 +147,7 @@ namespace BellurbisRestroApi.Repository
             }
         }
 
-        public override List<FavRestroPlayer>  getall()
+        public override List<FavRestroPlayer> getall()
         {
             List<FavRestroPlayer> allplayer = new List<FavRestroPlayer>();
 
@@ -175,7 +176,7 @@ namespace BellurbisRestroApi.Repository
             return allplayer;
         }
 
-        public override List<RestroMod>RetrieveRestro(string Name)
+        public override List<RestroMod> RetrieveRestro(string Name)
         {
             var obj = dbcontext.Restrotab.Where(Models => Models.RestroName == Name).ToList();
             return obj;
@@ -188,10 +189,10 @@ namespace BellurbisRestroApi.Repository
         public override List<FavRestroPlayer> FvrtRes(string name, bool status = true)
         {
             List<FavRestroPlayer> ListRest = new List<FavRestroPlayer>();
-            
-                if(name!= null && name != "")
+
+            if (name != null && name != "")
             {
-               var  res = (from pl in dbcontext.PlayersTab
+                var res = (from pl in dbcontext.PlayersTab
                            from fv in dbcontext.LinkRAP
                            from rt in dbcontext.Restrotab
                            where pl.PlayersId == fv.PlayersId
@@ -239,10 +240,10 @@ namespace BellurbisRestroApi.Repository
                     ListRest.Add(obj);
                 }
             }
-                return ListRest;
+            return ListRest;
         }
 
-        public override bool RestroPlayerMapping(LinkMod mod)   
+        public override bool RestroPlayerMapping(LinkMod mod)
         {
             if (mod == null)
             {
@@ -251,9 +252,9 @@ namespace BellurbisRestroApi.Repository
             else
             {
                 if (mod.PlayersId >= 1 && mod.RestroId >= 1)
-               
+
                 {
-                   // if(mod.Fav==null)
+                    // if(mod.Fav==null)
                     dbcontext.Add(mod);
                     dbcontext.SaveChanges();
                     return true;
@@ -266,60 +267,107 @@ namespace BellurbisRestroApi.Repository
             }
         }
 
-        public override List<string> GetbyAge(string RestroName, int age)
+        public override ListOfResAndPaly GetbyAge(string RestroName, int age)
         {
+            ListOfResAndPaly lst = new ListOfResAndPaly();
             var RestaurantCollection = dbcontext.Restrotab.FirstOrDefault(x => x.RestroName == RestroName);
+            List<PlayersMod> placol = new List<PlayersMod>();
+            List<PlayersMod> news = new List<PlayersMod>();
 
-            if(RestaurantCollection != null)
+            if (RestaurantCollection != null)
             {
                 var restaurentId = RestaurantCollection.RestroId;
 
                 var LinkDetail = dbcontext.LinkRAP.Where(x => x.RestroId == restaurentId).ToList();
+                foreach (var item in LinkDetail)
+                {
 
+                    var abc = dbcontext.PlayersTab.Where(x => x.PlayersId == item.PlayersId).FirstOrDefault();
+                    news.Add(abc);
 
-            }
-            //List<string> obj = new List<string>();
-            //List<FavRestroPlayer> res = new List<FavRestroPlayer>();
-            //var areas = (from pl in dbcontext.PlayersTab
-            //             from rt in dbcontext.Restrotab
-            //             from fv in dbcontext.LinkRAP
-            //             where pl.PlayersId == fv.PlayersId
-            //             && rt.RestroId == fv.RestroId
-            //             let years = DateTime.Now.Year - Convert.ToDateTime(pl.PlayerDOB).Year
-            //             let birthdayThisYear = Convert.ToDateTime(pl.PlayerDOB).AddYears(years)
-            //             select new
-            //             {
-            //                 pl = pl,
-            //                 rt = rt,
-            //                 fv = fv,
-            //                 Age = birthdayThisYear > DateTime.Now ? years - 1 : years
-            //             }).ToList();
+                }
 
-            
-            //foreach (var item in areas)
-            //    {
-            //    //int year = Convert.ToInt32(item.Age);
-               
-            //    FavRestroPlayer Fp = new FavRestroPlayer();
+                foreach (var item in news)
+                {
+                    
+                    var years = DateTime.Now.Year - Convert.ToDateTime(item.PlayerDOB).Year;
+                    
+                    if (years >= age)
+                    {
+                        placol.Add(item);
+                    }
+                    
+                    years = 0;
+                }
+                List<FavRestroPlayer> res = new List<FavRestroPlayer>();
+                var areas = (from pl in dbcontext.PlayersTab
+                             from rt in dbcontext.Restrotab
+                             from fv in dbcontext.LinkRAP
+                             where pl.PlayersId == fv.PlayersId
+                             && rt.RestroId == fv.RestroId
+                             select new
+                             {
+                                 pl = pl,
+                                 rt = rt,
+                                 fv = fv
+                             }).ToList();
+                foreach (var item in areas)
+                {
+                    FavRestroPlayer obj1 = new FavRestroPlayer();
+
+                    obj1.pl = item.pl;
+                    obj1.rt = item.rt;
+                    obj1.fv = item.fv;
+                    res.Add(obj1);
+                }
+
                 
-            //    if (item.Age >= 60 )
-            //    {
-            //        string s = "";
-            //        s = item.Age.ToString();
-            //        obj.Add(s);
-            //        Fp.pl = item.pl;
-            //        Fp.rt = item.rt;
-            //        Fp.fv = item.fv;
-            //        res.Add(Fp);
-            //    }
-            //    else
-            //    {
-            //        return obj;
-            //    }
-            //    }
-            
-          
-            //return obj;
+                lst.rt = RestaurantCollection;
+                lst.pls = placol;
+
+                //List<FavRestroPlayer> res = new List<FavRestroPlayer>();
+                //var areas = (from pl in dbcontext.PlayersTab
+                //             from rt in dbcontext.Restrotab
+                //             from fv in dbcontext.LinkRAP
+                //             where pl.PlayersId == fv.PlayersId
+                //             && rt.RestroId == fv.RestroId
+                //             let years = DateTime.Now.Year - Convert.ToDateTime(pl.PlayerDOB).Year
+                //             let birthdayThisYear = Convert.ToDateTime(pl.PlayerDOB).AddYears(years)
+                //             select new
+                //             {
+                //                 pl = pl,
+                //                 rt = rt,
+                //                 fv = fv,
+                //                 Age = birthdayThisYear > DateTime.Now ? years - 1 : years
+                //             }).ToList();
+
+
+                //foreach (var item in areas)
+                //    {
+                //    //int year = Convert.ToInt32(item.Age);
+
+                //    FavRestroPlayer Fp = new FavRestroPlayer();
+
+                //    if (item.Age >= 60 )
+                //    {
+                //        string s = "";
+                //        s = item.Age.ToString();
+                //        obj.Add(s);
+                //        Fp.pl = item.pl;
+                //        Fp.rt = item.rt;
+                //        Fp.fv = item.fv;
+                //        res.Add(Fp);
+                //    }
+                //    else
+                //    {
+                //        return obj;
+                //    }
+                //    }
+
+                
+            }
+
+            return lst;
         }
     }
 }
